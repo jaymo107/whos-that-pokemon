@@ -2,4 +2,4 @@ run:
 	go run *.go
 
 build:
-	go build *.go
+	GOARCH=amd64 GOOS=linux go build *.go
