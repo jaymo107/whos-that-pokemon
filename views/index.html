@@ -1,0 +1,12 @@
+{{template "partials/header" .}}
+    <img src="{{ .Image }}" class="rounded-lg h-96 w-96 blur-sm" />
+    <form method="post" action="/guess">
+        <div class="relative">
+            <input type="hidden" name="pokemon" value="{{ .Name }}" />
+            <input type="hidden" name="image" value="{{ .Image }}" />
+            
+            <input type="search" name="guess" id="search" class="block w-96 p-4 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500" placeholder="Guess..." required>
+            <button type="submit" class="text-white absolute end-2.5 bottom-2.5 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2">Guess</button>
+        </div>
+    </form>
+{{template "partials/footer" .}}
