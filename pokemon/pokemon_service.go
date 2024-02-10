@@ -6,6 +6,8 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+
+	"github.com/jaymo107/whos-that-pokemon/storage"
 )
 
 type SpritesRes struct {
@@ -18,6 +20,7 @@ type PokemonRes struct {
 }
 
 type Pokemon struct {
+	Id    int
 	Name  string
 	Image string
 }
@@ -25,19 +28,24 @@ type Pokemon struct {
 type PokemonService struct {
 	endpoint     string
 	maxPokemonId int
+	repository   storage.RepositoryInterface
 }
 
-func New() *PokemonService {
+type PokemonServiceConfig struct {
+	Repository   storage.RepositoryInterface
+	MaxPokemonId int
+	Endpoint     string
+}
+
+func NewPokemonService(config PokemonServiceConfig) *PokemonService {
 	return &PokemonService{
 		endpoint:     "https://pokeapi.co/api/v2/pokemon/%d",
-		maxPokemonId: 1025,
+		maxPokemonId: 5, //1025,
+		repository:   config.Repository,
 	}
 }
 
 // TODO:
-// - Check there is an image there and the pokemon was found. Handle 404s
-// - Store the pokemon when fetching in a local database to cache.
-// - Keep track on pokemon that get correct responses the most.
 // - Write some tests.
 // - Make the templates better.
 
@@ -45,16 +53,61 @@ func (p *PokemonService) GetRandomPokemon() *Pokemon {
 	id := rand.Intn(p.maxPokemonId)
 	pokemon, _ := p.getPokemonById(id)
 
-	return &Pokemon{
-		Name:  pokemon.Name,
-		Image: pokemon.Sprites.FrontDefault,
-	}
+	p.savePokemon(id, pokemon)
+
+	return pokemon
 }
 
-func (p *PokemonService) getPokemonById(id int) (PokemonRes, error) {
-	resp, err := http.Get(fmt.Sprintf(p.endpoint, id))
+func (p *PokemonService) MarkCorrectGuess(pid int) {
+	p.repository.Increment(pid, "correct")
+}
 
-	fmt.Println(id)
+func (p *PokemonService) MarkIncorrectGuess(pid int) {
+	p.repository.Increment(pid, "incorrect")
+}
+
+func (p *PokemonService) getPokemonById(id int) (*Pokemon, error) {
+	fromDb := p.getPokemonFromDb(id)
+
+	if fromDb != nil {
+		return fromDb, nil
+	}
+
+	fromApi, err := p.getPokemonFromApi(id)
+	pokemon := &Pokemon{
+		Id:    id,
+		Name:  fromApi.Name,
+		Image: fromApi.Sprites.FrontDefault,
+	}
+	return pokemon, err
+}
+
+func (p *PokemonService) getPokemonFromDb(id int) *Pokemon {
+	if dto, err := p.repository.FindById(id); err == nil {
+		p.repository.StoreHit(id)
+
+		return &Pokemon{
+			Id:    dto.Id,
+			Name:  dto.Name,
+			Image: dto.Image,
+		}
+	}
+
+	return nil
+}
+
+func (p *PokemonService) savePokemon(id int, pokemon *Pokemon) {
+	p.repository.Save(storage.PokemonDto{
+		Id:    id,
+		Name:  pokemon.Name,
+		Image: pokemon.Image,
+	})
+
+	fmt.Println("Saved pokemon to db", pokemon)
+}
+
+func (p *PokemonService) getPokemonFromApi(id int) (PokemonRes, error) {
+	resp, err := http.Get(fmt.Sprintf(p.endpoint, id))
 
 	if err != nil {
 		return PokemonRes{}, err

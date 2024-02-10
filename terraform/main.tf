@@ -47,6 +47,14 @@ resource "aws_security_group" "whos_that_pokemon_sg" {
         cidr_blocks = ["0.0.0.0/0"]
     }
 
+    ingress {
+        description = "HTTPS from VPC"
+        from_port = 443
+        to_port = 443
+        protocol = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
     egress {
         from_port = 0
         to_port = 0
@@ -70,3 +78,8 @@ resource "aws_instance" "whos_that_pokemon_ec2" {
 output "aws_public_ip" {
   value = aws_instance.whos_that_pokemon_ec2.public_ip
 }
+
+// Add an A record to the public DNS zone
+# resource "aws_route53_zone" "whos_that_pokemon_zone" {
+#   name = "whosthatpokemon.com"
+# }
