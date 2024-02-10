@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/glebarez/go-sqlite"
 )
 
 const file string = "database.db"
@@ -15,7 +15,7 @@ type SqlRepository struct {
 }
 
 func NewSqlRepository() *SqlRepository {
-	db, err := sql.Open("sqlite3", file)
+	db, err := sql.Open("sqlite", file)
 
 	if err != nil {
 		panic(err)
