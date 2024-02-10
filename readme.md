@@ -10,4 +10,4 @@ Todo:
 - [ ] Clean up the views
 
 
-![](screenshot.png)
+![](./screenshot.png)
