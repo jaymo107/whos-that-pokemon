@@ -40,7 +40,7 @@ type PokemonServiceConfig struct {
 func NewPokemonService(config PokemonServiceConfig) *PokemonService {
 	return &PokemonService{
 		endpoint:     "https://pokeapi.co/api/v2/pokemon/%d",
-		maxPokemonId: 5, //1025,
+		maxPokemonId: 1025,
 		repository:   config.Repository,
 	}
 }
