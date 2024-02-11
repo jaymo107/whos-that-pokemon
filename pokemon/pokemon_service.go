@@ -48,6 +48,7 @@ func NewPokemonService(config PokemonServiceConfig) *PokemonService {
 // TODO:
 // - Write some tests.
 // - Make the templates better.
+// - Handle if the pokemon ID is not found.
 
 func (p *PokemonService) GetRandomPokemon() *Pokemon {
 	id := rand.Intn(p.maxPokemonId)

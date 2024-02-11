@@ -3,7 +3,6 @@ package storage
 import (
 	"database/sql"
 	"fmt"
-	"sort"
 
 	_ "github.com/glebarez/go-sqlite"
 )
@@ -82,6 +81,10 @@ func (s *SqlRepository) All() []PokemonDto {
 	rows, err := s.db.Query(`
 		SELECT id, name, image, incorrect, correct
 		FROM pokemon
+		WHERE correct > 0
+		OR incorrect > 0
+		ORDER BY correct DESC
+		LIMIT 100
 	`)
 
 	if err != nil {
@@ -97,10 +100,6 @@ func (s *SqlRepository) All() []PokemonDto {
 		_ = rows.Scan(&dto.Id, &dto.Name, &dto.Image, &dto.Incorrect, &dto.Correct)
 		pokemon = append(pokemon, dto)
 	}
-
-	sort.Slice(pokemon, func(i, j int) bool {
-		return pokemon[i].Correct > pokemon[j].Correct
-	})
 
 	return pokemon
 }
