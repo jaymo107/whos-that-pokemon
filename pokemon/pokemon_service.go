@@ -29,29 +29,43 @@ type PokemonService struct {
 	endpoint     string
 	maxPokemonId int
 	repository   storage.RepositoryInterface
+	randFunc     RandFunc
 }
+
+type RandFunc func(int) int
 
 type PokemonServiceConfig struct {
 	Repository   storage.RepositoryInterface
 	MaxPokemonId int
 	Endpoint     string
+	randFunc     RandFunc
 }
 
+const maxPokemonId = 1025
+
 func NewPokemonService(config PokemonServiceConfig) *PokemonService {
+	if config.randFunc == nil {
+		config.randFunc = rand.Intn
+	}
+
+	if config.Endpoint == "" {
+		config.Endpoint = "https://pokeapi.co/api/v2/pokemon/%d"
+	}
+
+	if config.MaxPokemonId == 0 || config.MaxPokemonId > maxPokemonId {
+		config.MaxPokemonId = 1025
+	}
+
 	return &PokemonService{
-		endpoint:     "https://pokeapi.co/api/v2/pokemon/%d",
-		maxPokemonId: 1025,
+		endpoint:     config.Endpoint,
+		maxPokemonId: config.MaxPokemonId,
 		repository:   config.Repository,
+		randFunc:     config.randFunc,
 	}
 }
 
-// TODO:
-// - Write some tests.
-// - Make the templates better.
-// - Handle if the pokemon ID is not found.
-
 func (p *PokemonService) GetRandomPokemon() *Pokemon {
-	id := rand.Intn(p.maxPokemonId)
+	id := p.randFunc(p.maxPokemonId)
 	pokemon, _ := p.getPokemonById(id)
 
 	p.savePokemon(id, pokemon)

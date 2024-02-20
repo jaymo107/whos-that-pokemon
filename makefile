@@ -3,3 +3,6 @@ run:
 
 build:
 	GOARCH=amd64 GOOS=linux go build *.go
+
+test:
+	go test -v ./...
